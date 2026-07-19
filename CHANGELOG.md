@@ -16,6 +16,13 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
 - **`refresh_zones.sh` venv-detectie:** zoekt nu `$VENV` → app-lokaal `.venv` → `../venv`, zodat de
   refresh-timer werkt op de systemd-deploy (venv op `/opt/weerwijsheid/venv`, één niveau boven de
   app-map). Vóór deze fix sourcete het script alleen `.venv` in de app-map en faalde de timer.
+- **Reproduceerbare herbouw voor DE/NL/AT:** de zonegeometrie voor Duitsland (402 Kreise),
+  Nederland (12 provincies) en Oostenrijk (2114 gemeenten) staat nu als shipped GeoJSON in git,
+  net als IT/FR/BE. Het register (`zone_sources.json`) verklaarde al `present:true` maar de
+  bestanden ontbraken → een verse clone/kickstart was voor die drie afhankelijk van live
+  overheids-WFS-endpoints. Nu volledig reproduceerbaar zonder netwerk. Alle drie geverifieerd:
+  CRS EPSG:4326, model-contract compleet (`verify_boundaries de nl at`). `zone_manifest.json`
+  (per-fetch ontvangstbewijs) is nu gitignored — build-artifact, geen bron.
 ### Bekend
 - IT live-kleurenfeed (DPC-bulletin op GitHub) bevroren sinds 2022-09-03 → eerlijk `UNAVAILABLE`
   via `data_health` (OPERATIONS §7); vervangkandidaat MeteoAlarm CAP-feed.

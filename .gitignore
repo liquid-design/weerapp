@@ -8,6 +8,9 @@ backend/cache/*.json
 data/feedback.json
 !data/.gitkeep
 
+# build-ontvangstbewijs (per-fetch state met fetched_at; regenereerbaar via refresh/kickstart)
+frontend/map/data/zone_manifest.json
+
 # lokale deploy-artefacten (niet committen)
 .DS_Store
 weerwijsheid-v3.zip
