@@ -23,6 +23,11 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
   overheids-WFS-endpoints. Nu volledig reproduceerbaar zonder netwerk. Alle drie geverifieerd:
   CRS EPSG:4326, model-contract compleet (`verify_boundaries de nl at`). `zone_manifest.json`
   (per-fetch ontvangstbewijs) is nu gitignored — build-artifact, geen bron.
+### Infrastructuur
+- **Read-only deploy-key** voor de VM: service-user `weerwijsheid` heeft nu een eigen
+  ed25519-key (`/opt/weerwijsheid/.ssh/id_ed25519`, GitHub Deploy keys, geen write-access). De
+  update-procedure is daarmee één schoon commando (`sudo -u weerwijsheid git pull`) i.p.v. de
+  agent-forwarding + chown-omweg. OPERATIONS §2 bijgewerkt.
 ### Bekend
 - IT live-kleurenfeed (DPC-bulletin op GitHub) bevroren sinds 2022-09-03 → eerlijk `UNAVAILABLE`
   via `data_health` (OPERATIONS §7); vervangkandidaat MeteoAlarm CAP-feed.

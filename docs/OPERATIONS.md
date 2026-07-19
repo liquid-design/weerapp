@@ -78,20 +78,31 @@ sudo systemctl restart weerwijsheid
 curl -s localhost:8080/api/health
 ```
 
-> **Eenmalige voorwaarde voor stap 2 (belangrijk — realiteit van deze deploy).**
-> De VM had géén GitHub-credential; de *eerste* clone is daarom via **SSH agent-forwarding**
-> (`ssh -A`, met de Mac-key) gedaan en daarna teruggezet naar eigendom `weerwijsheid`. Een bare
-> `git pull` op de VM werkt pas als de service-user een eigen **read-only deploy-key** heeft:
-> ```bash
-> sudo -u weerwijsheid ssh-keygen -t ed25519 -N '' -f /opt/weerwijsheid/.ssh/id_ed25519
-> sudo -u weerwijsheid cat /opt/weerwijsheid/.ssh/id_ed25519.pub
-> # plak de public key in GitHub → repo weerapp → Settings → Deploy keys → Add (read-only)
-> ```
-> Zónder deploy-key: pull vanaf de Mac met agent-forwarding en een chown-omweg (zoals de eerste
-> clone) — omslachtiger; de deploy-key is de aanbevolen eindstaat.
->
+Stap 2 is **één schoon commando** — geen agent-forwarding, geen chown-omweg. Dat werkt dankzij een
+**read-only deploy-key** die de service-user `weerwijsheid` bezit:
+`/opt/weerwijsheid/.ssh/id_ed25519` (in GitHub → repo `weerapp` → Settings → Deploy keys,
+*zonder* write-access). `sudo -u weerwijsheid git pull` gebruikt die key automatisch.
+
+Verifiëren dat de key werkt:
+```bash
+sudo -u weerwijsheid ssh -T git@github.com
+# -> "Hi liquid-design/weerapp! You've successfully authenticated, but GitHub does not provide shell access."
+```
+
 > **git draait als `weerwijsheid`, niet als `ansible`** — git als `ansible` op deze checkout geeft
 > `detected dubious ownership`.
+>
+> **Deploy-key opnieuw opzetten (recovery / verse VM):**
+> ```bash
+> sudo -u weerwijsheid bash -c 'umask 077; mkdir -p /opt/weerwijsheid/.ssh
+>   ssh-keygen -t ed25519 -N "" -C weerwijsheid-deploy@weer -f /opt/weerwijsheid/.ssh/id_ed25519 -q
+>   ssh-keyscan -t ed25519 github.com >> /opt/weerwijsheid/.ssh/known_hosts   # fingerprint moet
+>   #   SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU zijn (GitHub officieel)
+>   cat /opt/weerwijsheid/.ssh/id_ed25519.pub'
+> # plak de .pub in GitHub → repo weerapp → Settings → Deploy keys → Add (Allow write access UIT)
+> ```
+> *Historie:* de éérste clone had nog geen deploy-key en ging via SSH agent-forwarding
+> (`ssh -A`, met de Mac-key) + een chown-omweg. Sinds de deploy-key is dat niet meer nodig.
 
 ---
 
