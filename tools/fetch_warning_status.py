@@ -11,7 +11,7 @@ toont neutraal + 'kleuren onbekend'. Nooit een verzonnen kleur.
 Draai (Mac/LXC, met internet):   python tools/fetch_warning_status.py it de
 Cron-baar via tools/refresh_zones.sh (of vaker als je wilt; het bestand is klein).
 """
-import sys, os, json
+import sys, os, json, re
 from datetime import datetime, timezone
 
 import requests
@@ -24,40 +24,60 @@ UA = {"User-Agent": "Weerwijsheid/3.0 (persoonlijke weerbeslisser)"}
 _SEVERITY = {"Minor": "yellow", "Moderate": "orange", "Severe": "red", "Extreme": "red"}
 
 
+_DPC_REPO = "pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica"
+_DPC_RAW = f"https://raw.githubusercontent.com/{_DPC_REPO}/master/files/"
+_DPC_API = f"https://api.github.com/repos/{_DPC_REPO}"
+
+
+def _dpc_latest_stamp():
+    """Deterministisch de nieuwste bulletin-bestandsnaam (YYYYMMDD_HHMM) bepalen — GEEN giswerk.
+
+    De publicatietijd (HHMM) varieert per dag, dus een vaste tijdenlijst raadt onvermijdelijk mis
+    (dat was de oude bug: 20260719_1416.json miste omdat '1416' niet in de gok-lijst zat). We lezen
+    de 'files/'-map via de GitHub git-tree API en nemen de lexicografisch hoogste naam (zero-padded
+    datum+tijd => hoogste = nieuwste). De contents-API is hiervoor ONBRUIKBAAR: die cap't op 1000
+    entries en gaf daardoor eerder ten onrechte 2022 als 'nieuwste'."""
+    root = requests.get(f"{_DPC_API}/git/trees/master", headers=UA, timeout=30)
+    root.raise_for_status()
+    files_sha = next(t["sha"] for t in root.json()["tree"]
+                     if t["path"] == "files" and t["type"] == "tree")
+    tree = requests.get(f"{_DPC_API}/git/trees/{files_sha}", headers=UA, timeout=30)
+    tree.raise_for_status()
+    stamps = [t["path"][:-5] for t in tree.json()["tree"]
+              if re.fullmatch(r"\d{8}_\d{4}\.json", t["path"])]
+    if not stamps:
+        raise RuntimeError("geen bulletin-bestanden gevonden in DPC-repo files/")
+    return max(stamps)
+
+
 def status_it():
-    """Italië: het dagelijkse Protezione Civile-bulletin (TopoJSON) draagt per zone de kleur."""
-    base = "https://raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/"
-    # index-bestand van vandaag zoeken via de GitHub contents-API is rate-limited; het bulletin
-    # publiceert een stabiel 'last'-patroon: probeer de recentste via de daglijst in files/.
-    # Pragmatisch: het laatst bekende naamformaat wordt door de kaartsite zelf geladen; wij
-    # pakken de door de site gerefereerde json via het vaste patroon van vandaag en gisteren.
-    from datetime import date, timedelta
-    candidates = []
-    for d in (date.today(), date.today() - timedelta(days=1)):
-        for hhmm in ("1458", "1500", "1437", "1600", "1400"):
-            candidates.append(f"{d:%Y%m%d}_{hhmm}")
-    for stamp in candidates:
-        try:
-            r = requests.get(base + stamp + ".json", headers=UA, timeout=15)
-            if r.status_code != 200:
-                continue
-            meta = r.json()
-            topo_url = meta["today"]["topo_json"]
-            t = requests.get(topo_url, headers=UA, timeout=30).json()
-            obj = next(iter(t["objects"].values()))
-            out = {}
-            for g in obj["geometries"]:
-                p = g.get("properties", {})
-                rapp = (p.get("Rappresentata nella mappa", "") or "").upper()
-                level = "red" if "ROSSA" in rapp else "orange" if "ARANCIONE" in rapp \
-                        else "yellow" if "GIALLA" in rapp else "green"
-                name = p.get("Nome zona")
-                if name:
-                    out[f"IT-{name}"] = level
-            return out, meta.get("name", stamp)
-        except Exception:
-            continue
-    raise RuntimeError("geen recent bulletin gevonden (probeer later)")
+    """Italië: het dagelijkse Protezione Civile-bulletin draagt per zone de kleur.
+
+    Bron: pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica (officieel, CC-BY-4.0) — dezelfde
+    bron als de kaart op mappe.protezionecivile.gov.it. Het index-bestand `files/<stamp>.json` wijst
+    naar `today.topo_json`; die TopoJSON draagt per zone `Nome zona` + `Rappresentata nella mappa`.
+    Geverifieerd 2026-07-19 met echte requests: 187 geometrieën, `Nome zona` matcht de zonegeometrie
+    (`zone`) 1-op-1, en de frontend koppelt via `IT-<Nome zona>` (layers.js). Kleurwoorden staan in
+    de 'ALLERTA <KLEUR>'-tekst (GIALLA/ARANCIONE/ROSSA); 'NESSUNA ALLERTA' => geen woord => groen."""
+    stamp = _dpc_latest_stamp()
+    meta = requests.get(_DPC_RAW + stamp + ".json", headers=UA, timeout=30)
+    meta.raise_for_status()
+    topo_url = meta.json()["today"]["topo_json"]
+    t = requests.get(topo_url, headers=UA, timeout=60)
+    t.raise_for_status()
+    obj = next(iter(t.json()["objects"].values()))
+    out = {}
+    for g in obj["geometries"]:
+        p = g.get("properties", {}) or {}
+        rapp = (p.get("Rappresentata nella mappa", "") or "").upper()
+        level = ("red" if "ROSSA" in rapp else "orange" if "ARANCIONE" in rapp
+                 else "yellow" if "GIALLA" in rapp else "green")
+        name = p.get("Nome zona")
+        if name:
+            out[f"IT-{name}"] = level
+    if not out:
+        raise RuntimeError(f"bulletin {stamp} bevatte geen zones met 'Nome zona'")
+    return out, meta.json().get("name", stamp)
 
 
 def status_de():

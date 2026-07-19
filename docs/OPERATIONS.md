@@ -198,14 +198,12 @@ goedkoop.
 ---
 
 ## 7. Bekende issues
-- **IT live-kleuren zijn dood.** `fetch_warning_status.py` `status_it()` haalt het dagelijkse
-  Protezione-Civile-bulletin van
-  `raw.githubusercontent.com/pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica/master/files/`.
-  Die map is **bevroren sinds 2022-09-03**; er komt nooit een recent bulletin → `warning_status.json`
-  `sources.IT.ok=false`. De app toont dit eerlijk (geen verzonnen kleur). **Geometrie/autoriteit
-  voor IT zijn ongewijzigd groen.** *Vervangkandidaat:* de MeteoAlarm CAP-feed (de provider
-  `backend/providers/warning/meteoalarm.py` bestaat al) of het actuele PC-bulletin-endpoint →
-  repo-fix.
+- **IT live-kleuren: WERKEND** (correctie op eerdere diagnose). De DPC-bulletinfeed
+  `pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica` is niet dood — de eerdere conclusie
+  "bevroren sinds 2022" was een artefact van de GitHub *contents*-API (cap 1000 entries). De bug
+  zat in `status_it()`, dat vaste publicatietijden (HHMM) raadde en het bestand van vandaag miste.
+  Sinds de fix bepaalt `status_it()` de nieuwste bulletin-bestandsnaam deterministisch via de
+  GitHub git-tree API. `data_health` `sources.IT.ok=true`; de kaart toont echte zonekleuren.
 - **`/api/data_health` = `ok:false`** zolang niet alle landen zijn uitgerold: mijlpaal 1 deed alleen
   `it`, dus DE/NL/AT melden "geometrie ontbreekt lokaal" (`warn`). Verdwijnt na §5. **`ok:false` is
   hier verwacht gedrag, geen defect.**

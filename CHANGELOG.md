@@ -28,9 +28,14 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
   ed25519-key (`/opt/weerwijsheid/.ssh/id_ed25519`, GitHub Deploy keys, geen write-access). De
   update-procedure is daarmee één schoon commando (`sudo -u weerwijsheid git pull`) i.p.v. de
   agent-forwarding + chown-omweg. OPERATIONS §2 bijgewerkt.
-### Bekend
-- IT live-kleurenfeed (DPC-bulletin op GitHub) bevroren sinds 2022-09-03 → eerlijk `UNAVAILABLE`
-  via `data_health` (OPERATIONS §7); vervangkandidaat MeteoAlarm CAP-feed.
+### Gerepareerd
+- **IT live-kleuren werken weer.** Correctie op een eerdere foute diagnose: de DPC-bulletinfeed
+  (`pcm-dpc/DPC-Bollettini-Criticita-Idrogeologica-Idraulica`) is **niet** dood — de GitHub
+  *contents*-API cap't op 1000 entries en toonde daardoor ten onrechte 2022 als "nieuwste". De
+  echte bug zat in `status_it()`: het raadde vaste publicatietijden (HHMM) en miste het bestand
+  van vandaag. `status_it()` bepaalt de nieuwste bulletin-bestandsnaam nu **deterministisch** via
+  de GitHub git-tree API (geen giswerk). Geverifieerd met echte requests: 187 zones, `Nome zona`
+  matcht de zonegeometrie 1-op-1, frontend-sleutel `IT-<naam>`; `data_health` `sources.IT.ok=true`.
 ### Toegevoegd (pre-deploy)
 - Deploy-kit in `deploy/`: systemd-units (api + refresh-timer), directorycontract,
   deploy-checklist met validatierun (mijlpaal 1 = Italië, volledige keten).
