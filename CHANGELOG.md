@@ -12,9 +12,13 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
   Bewijsstuk: `deploy/evidence/first-production-run.md`.
 - **`docs/OPERATIONS.md`** — runbook op basis van de echte deploy: start/stop/status, git-update
   (nooit zip/scp), DNS via Technitium, egress-allowlist, nieuw land uitrollen, backup/recovery.
-- **Bekend issue vastgelegd:** `refresh_zones.sh` sourcet `.venv` in de app-map, maar de venv staat
-  op `/opt/weerwijsheid/venv` → refresh-timer faalt tot fix (zie OPERATIONS §6). IT live-kleurenfeed
-  (DPC-bulletin op GitHub) bevroren sinds 2022-09-03 → eerlijk `UNAVAILABLE` (OPERATIONS §7).
+### Gerepareerd
+- **`refresh_zones.sh` venv-detectie:** zoekt nu `$VENV` → app-lokaal `.venv` → `../venv`, zodat de
+  refresh-timer werkt op de systemd-deploy (venv op `/opt/weerwijsheid/venv`, één niveau boven de
+  app-map). Vóór deze fix sourcete het script alleen `.venv` in de app-map en faalde de timer.
+### Bekend
+- IT live-kleurenfeed (DPC-bulletin op GitHub) bevroren sinds 2022-09-03 → eerlijk `UNAVAILABLE`
+  via `data_health` (OPERATIONS §7); vervangkandidaat MeteoAlarm CAP-feed.
 ### Toegevoegd (pre-deploy)
 - Deploy-kit in `deploy/`: systemd-units (api + refresh-timer), directorycontract,
   deploy-checklist met validatierun (mijlpaal 1 = Italië, volledige keten).

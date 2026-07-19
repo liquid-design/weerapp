@@ -169,20 +169,16 @@ dat faalt stopt de rest niet.
 
 ---
 
-## 6. Data-refresh (timer) — **bekende bug, lees vóór je erop vertrouwt**
+## 6. Data-refresh (timer)
 `weerwijsheid-refresh.timer` draait dagelijks 04:30 (±15 min) `tools/refresh_zones.sh`.
 
-> ⚠️ **Bug:** `refresh_zones.sh` doet `source .venv/bin/activate` relatief aan de app-map
-> (`/opt/weerwijsheid/app/.venv`), maar de venv staat op **`/opt/weerwijsheid/venv`**. Met
-> `set -euo pipefail` breekt de refresh dus af vóór er iets gebeurt. **De timer-run faalt** (zie
-> `/opt/weerwijsheid/logs/refresh.log`).
->
-> **Fix (repo, aanbevolen):** maak `refresh_zones.sh` venv-pad-configureerbaar, bv. een
-> `${VENV:-/opt/weerwijsheid/venv}` en de refresh-unit een `Environment=VENV=…`, of laat de unit
-> direct `/opt/weerwijsheid/venv/bin/python` aanroepen i.p.v. het script te sourcen.
-> **Tijdelijke workaround (VM, niet contract-conform):** symlink
-> `ln -s ../venv /opt/weerwijsheid/app/.venv`. Tot dit is opgelost: ververs **handmatig** met de
-> commando's uit §5.
+> ℹ️ **venv-detectie (opgelost).** `refresh_zones.sh` zoekt de venv nu robuust: expliciete `$VENV`
+> → app-lokaal `.venv` (dev/kickstart) → zuster-map `../venv` (systemd-deploy:
+> `/opt/weerwijsheid/venv`). Op de VM pakt hij automatisch `/opt/weerwijsheid/venv`. Verifieer een
+> run met `sudo systemctl start weerwijsheid-refresh.service` en
+> `sudo tail -f /opt/weerwijsheid/logs/refresh.log`.
+> *(Historie: vóór deze fix sourcete het script alleen `.venv` in de app-map en faalde de timer op
+> de VM — de venv staat één niveau hoger.)*
 
 De refresh doet geometrie (`fetch_boundaries.py all`) én actuele kleuren
 (`fetch_warning_status.py`). Geometrie is idempotent; kleuren zijn klein — dagelijks draaien is
