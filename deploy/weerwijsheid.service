@@ -1,0 +1,27 @@
+# systemd-unit: de API (enige langdraaiende proces).
+# Installeren:  cp deploy/weerwijsheid.service /etc/systemd/system/
+#               systemctl daemon-reload && systemctl enable --now weerwijsheid
+[Unit]
+Description=Weerwijsheid — persoonlijke weerbeslisser (API + frontend)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=weerwijsheid
+Group=weerwijsheid
+WorkingDirectory=/opt/weerwijsheid/app
+Environment=PYTHONUNBUFFERED=1
+EnvironmentFile=/opt/weerwijsheid/config/env
+ExecStart=/opt/weerwijsheid/venv/bin/python backend/app.py
+Restart=on-failure
+RestartSec=5
+# hardening (baseline; aanscherpen tijdens deploy als alles draait)
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/weerwijsheid/app /opt/weerwijsheid/logs
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

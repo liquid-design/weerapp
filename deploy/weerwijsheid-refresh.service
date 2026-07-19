@@ -1,0 +1,15 @@
+# systemd-unit: de data-buildstap (oneshot; gestart door de timer, nooit handmatig nodig).
+[Unit]
+Description=Weerwijsheid — zonegeometrie + waarschuwingskleuren verversen (build-stap)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=weerwijsheid
+Group=weerwijsheid
+WorkingDirectory=/opt/weerwijsheid/app
+EnvironmentFile=/opt/weerwijsheid/config/env
+ExecStart=/opt/weerwijsheid/app/tools/refresh_zones.sh
+StandardOutput=append:/opt/weerwijsheid/logs/refresh.log
+StandardError=append:/opt/weerwijsheid/logs/refresh.log

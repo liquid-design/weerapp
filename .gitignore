@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+backend/cache/*.json
+!backend/cache/.gitkeep
+
+data/feedback.json
+!data/.gitkeep
+
+# lokale deploy-artefacten (niet committen)
+.DS_Store
+weerwijsheid-v3.zip
+weerwijsheid-v3/

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f4efe4">
+<title>Weerwijsheid</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="map/styles.css">
+</head>
+<body>
+<header>
+  <h1>🌦️ Weerwijsheid</h1>
+  <div class="sub">Ik zie iets → wat betekent het → wat doe ik?</div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <div class="tab active" data-p="live">📍 Live</div>
+  <div class="tab" data-p="getallen">🔢 Getallen</div>
+  <div class="tab" data-p="beslisser">⛺ Beslisser</div>
+  <div class="tab" data-p="modellen">🗺️ Modellen</div>
+  <div class="tab" data-p="landen">🚨 Landen</div>
+  <div class="tab" data-p="theorie">📚 Theorie</div>
+  <div class="tab" data-p="routine">☀️ Routine</div>
+</nav>
+
+<main>
+  <!-- LIVE -->
+  <section class="panel active" id="live">
+    <div class="card">
+      <h2>Live weerbeslisser</h2>
+      <p class="lead">Kies je locatie en verblijf. De backend combineert de bronnen en geeft één advies — met de reden erbij.</p>
+      <label class="fld">Locatie</label>
+      <select id="locSel"></select>
+      <div class="row-actions">
+        <button class="linkbtn" id="addToggle">➕ Locatie toevoegen</button>
+        <button class="linkbtn danger" id="delBtn">🗑 Verwijder deze locatie</button>
+      </div>
+      <div id="addBox" style="display:none;margin-top:10px">
+        <label class="fld">Zoek (camping, stad + land)</label>
+        <input class="txt" id="geoQ" type="text" placeholder="bv. Camping Eden, Lago d'Iseo" autocomplete="off">
+        <button class="ghost" id="geoBtn" style="margin-top:8px">🔍 Zoek coördinaten</button>
+        <div id="geoOut"></div>
+      </div>
+      <label class="fld">Mijn verblijf</label>
+      <select id="accSel">
+        <option value="tent">⛺ Tent</option>
+        <option value="vouw">🏕️ Vouwwagen / luifel</option>
+        <option value="caravan">🚐 Caravan</option>
+        <option value="camper">🚌 Camper</option>
+        <option value="none">🏠 Vast gebouw</option>
+      </select>
+      <div id="dataHealth" class="data-health" style="display:none"></div>
+      <div id="liveOut" class="out"></div>
+      <button class="ghost" id="refreshBtn" style="margin-top:12px">↻ Ververs data</button>
+    </div>
+    <div class="callout why"><b>Waarom dit advies?</b> Een niveau is nooit "het gebeurt zeker". Het is <b>kans × impact</b>, groot genoeg om actie te adviseren. Daarom staat onder elk advies wélke drempels het veroorzaakten.</div>
+  </section>
+
+  <!-- GETALLEN -->
+  <section class="panel" id="getallen">
+    <div class="card">
+      <h2>Getallen leren lezen</h2>
+      <p class="lead">Kies een variabele. Je krijgt de schaal én wat je ermee doet.</p>
+      <label class="fld">Welk getal zie ik?</label>
+      <select id="numSel"></select>
+      <div id="numOut" class="out"></div>
+    </div>
+  </section>
+
+  <!-- BESLISSER -->
+  <section class="panel" id="beslisser">
+    <div class="card">
+      <h2>⭐ Kampeerbeslisser (handmatig)</h2>
+      <p class="lead">Vul zelf in wat je verwacht. Zelfde engine-logica als Live, maar met jouw invoer.</p>
+      <label class="fld">Verblijf</label>
+      <select id="bAcc"><option value="tent">⛺ Tent</option><option value="vouw">🏕️ Vouwwagen</option><option value="caravan">🚐 Caravan</option><option value="camper">🚌 Camper</option></select>
+      <label class="fld">Windstoten</label>
+      <select id="bWind"><option value="0">tot 40 km/u</option><option value="1">40–60</option><option value="2">60–80</option><option value="3">80–100</option><option value="4">meer dan 100</option></select>
+      <label class="fld">Regen (24 u)</label>
+      <select id="bRain"><option value="0">&lt; 20 mm</option><option value="1">20–50</option><option value="2">50–100</option><option value="3">&gt; 100</option></select>
+      <label class="fld">Onweer</label>
+      <select id="bStorm"><option value="0">Geen aanwijzingen</option><option value="1">CAPE hoog, niets dichtbij</option><option value="2">Bliksem binnen ~30 km</option><option value="3">Bliksem dichtbij + waarschuwing</option></select>
+      <div id="bOut" class="out"></div>
+    </div>
+    <div class="callout info"><b>Belangrijker dan het totaal:</b> regen-intensiteit + terrein. 30 mm rustig over een dag = niets; 30 mm in een half uur in een kom bij een beek = ondergelopen tent.</div>
+  </section>
+
+  <!-- MODELLEN -->
+  <section class="panel" id="modellen">
+    <div class="card">
+      <h2>Welke knop druk ik in?</h2>
+      <label class="fld">Wat wil je weten?</label>
+      <select id="modSel">
+        <option value="">— Kies —</option>
+        <option value="meerdaags">Planning — 3 tot 7 dagen</option>
+        <option value="morgen">Onweer vandaag/morgen?</option>
+        <option value="bergen">Bergen / Alpen</option>
+        <option value="twijfel">Modellen spreken elkaar tegen</option>
+      </select>
+      <div id="modOut" class="out"></div>
+    </div>
+  </section>
+
+  <!-- LANDEN -->
+  <section class="panel" id="landen">
+    <div class="card">
+      <h2>Waarschuwingen per land</h2>
+      <label class="fld">Waar ben ik?</label>
+      <select id="cnSel"></select>
+      <div id="cnOut" class="out"></div>
+    </div>
+    <div class="callout info"><b>Twee soorten:</b> de weerdienst/Meteoalarm waarschuwt op <b>intensiteit</b>; civiele bescherming op <b>impact</b>. De impact-versie is leidend voor wat jij doet.</div>
+  </section>
+
+  <!-- THEORIE -->
+  <section class="panel" id="theorie">
+    <div class="theory-wrap">
+      <nav class="chapters" id="chapters"></nav>
+      <div class="chapter-body card" id="chapterBody"></div>
+    </div>
+  </section>
+
+  <!-- ROUTINE -->
+  <section class="panel" id="routine">
+    <div class="card">
+      <h2>Mijn 5-minuten weercheck</h2>
+      <p class="lead">Van grote lijn → detail → waarneming → officiële stem.</p>
+      <div id="routeList"></div>
+    </div>
+  </section>
+
+  <div class="foot">
+    Weerwijsheid v2 · leeromgeving + beslisassistent · draait lokaal op je LXC<br>
+    Data via de backend-adapters. Bij levensgevaar volg je de officiële dienst en bel je 112.
+  </div>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="map/popup.js"></script>
+<script src="map/layers.js"></script>
+<script src="map/map.js"></script>
+<script src="app.js"></script>
+<script src="theory.js"></script>
+</body>
+</html>

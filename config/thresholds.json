@@ -1,0 +1,15 @@
+{
+  "_comment": "Alle drempels wonen hier, niet in code. Pas aan zonder de engine te raken. Bump 'version' bij elke inhoudelijke wijziging zodat feedback aan de juiste regelset gekoppeld blijft.",
+  "version": "2026.07.1",
+  "cache_max_age_min": 15,
+  "wind_gust_kmh":    { "yellow": 40,   "orange": 62,   "red": 88,   "violet": 118 },
+  "rain_amount_mm24": { "yellow": 20,   "orange": 50,   "red": 100 },
+  "cape_jkg":         { "yellow": 1000, "orange": 2500, "red": 4000 },
+  "lightning_near_km": 30,
+  "accommodation_vulnerability": {
+    "tent": 1.0, "vouw": 0.7, "caravan": 0.4, "camper": 0.2, "none": 0.5
+  },
+  "alert_floor": {
+    "green": "green", "yellow": "yellow", "orange": "orange", "red": "red", "violet": "violet"
+  }
+}

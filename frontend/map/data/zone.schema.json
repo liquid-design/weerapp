@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Weerwijsheid genormaliseerde waarschuwingszone (ADR-031)",
+  "description": "Elke feature in een <land>_*.geojson na normalisatie door fetch_boundaries.py.",
+  "type": "object",
+  "required": ["type", "properties", "geometry"],
+  "properties": {
+    "type": { "const": "Feature" },
+    "properties": {
+      "type": "object",
+      "required": ["zone_id", "country", "authority", "zone_type", "geometry_status", "zone", "level"],
+      "properties": {
+        "zone_id":        { "type": "string", "description": "<COUNTRY>-<source_key>, bv. DE-05111000" },
+        "country":        { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "authority":      { "type": "string" },
+        "zone_type":      { "enum": ["meteorological", "administrative"] },
+        "geometry_status":{ "enum": ["official", "derived", "approximation", "missing"] },
+        "source_dataset": { "type": "string" },
+        "source_key":     { "type": "string" },
+        "zone":           { "type": "string", "description": "leesbare zonenaam" },
+        "level":          { "enum": ["green", "yellow", "orange", "red"] }
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "required": ["type", "coordinates"],
+      "properties": { "type": { "enum": ["Polygon", "MultiPolygon"] } }
+    }
+  }
+}

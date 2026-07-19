@@ -1,0 +1,86 @@
+{
+  "_doc": "Governance-cases voor de warning-router (ADR-030). Testdata = documentatie. Elke case toetst: juist land, bevoegde autoriteit, en welke bron NIET geselecteerd mag worden. 'country' in input = het administratieve feit (op een netwerk-machine bevestigt de reverse-geocoder dit; hier wordt het als bekend meegegeven zodat de GATE deterministisch getoetst wordt).",
+
+  "regression": [
+    {
+      "name": "Bled · Slovenië (baseline-herstel)",
+      "input": { "lat": 46.37, "lon": 14.11, "country": "SI" },
+      "expected": { "country": "SI", "authority": "ARSO" },
+      "must_not_select": ["Protezione Civile", "GeoSphere Austria"],
+      "was_before": "Protezione Civile"
+    },
+    {
+      "name": "Camping Šobec · Slovenië (baseline-herstel)",
+      "input": { "lat": 46.39, "lon": 14.09, "country": "SI" },
+      "expected": { "country": "SI", "authority": "ARSO" },
+      "must_not_select": ["Protezione Civile", "GeoSphere Austria"],
+      "was_before": "Protezione Civile"
+    },
+    {
+      "name": "Tirol / Innsbruck · Oostenrijk (baseline-herstel)",
+      "input": { "lat": 47.27, "lon": 11.39, "country": "AT" },
+      "expected": { "country": "AT", "authority": "GeoSphere Austria" },
+      "must_not_select": ["Protezione Civile", "ARSO"],
+      "was_before": "Protezione Civile"
+    }
+  ],
+
+  "seeds": [
+    {
+      "name": "Lago di Garda · Italië",
+      "input": { "lat": 45.55, "lon": 10.70, "country": "IT" },
+      "expected": { "country": "IT", "authority": "Protezione Civile" },
+      "must_not_select": ["ARSO", "GeoSphere Austria"]
+    },
+    {
+      "name": "Antwerpen · België (geen bron)",
+      "input": { "lat": 51.22, "lon": 4.40, "country": "BE" },
+      "expected": { "country": "BE", "state": "UNAVAILABLE" },
+      "must_not_select": ["Protezione Civile", "ARSO", "GeoSphere Austria"]
+    },
+    {
+      "name": "Texel · Nederland (geen warning-bron; observation wel)",
+      "input": { "lat": 53.05, "lon": 4.80, "country": "NL" },
+      "expected": { "country": "NL", "state": "UNAVAILABLE" },
+      "must_not_select": ["Protezione Civile", "ARSO", "GeoSphere Austria"]
+    }
+  ],
+
+  "breakpoints": [
+    {
+      "name": "Dreiländereck · AT/SI/IT drielandenpunt",
+      "input": { "lat": 46.51, "lon": 13.71, "country": "AT" },
+      "expected": { "country": "AT", "authority": "GeoSphere Austria" },
+      "must_not_select": ["Protezione Civile", "ARSO"],
+      "note": "Kritisch: exact ÉÉN landautoriteit, nooit IT+AT+SI gestapeld."
+    },
+    {
+      "name": "Bormio · Italië (Alpen, hoogte/dal/pas)",
+      "input": { "lat": 46.47, "lon": 10.37, "country": "IT" },
+      "expected": { "country": "IT", "authority": "Protezione Civile" },
+      "must_not_select": ["GeoSphere Austria"],
+      "note": "Grens met AT/CH; de country-gate moet standhouden."
+    },
+    {
+      "name": "Trieste · Italië (Alpen ↔ Adria, grens met SI)",
+      "input": { "lat": 45.65, "lon": 13.77, "country": "IT" },
+      "expected": { "country": "IT", "authority": "Protezione Civile" },
+      "must_not_select": ["ARSO"],
+      "note": "SI ligt < 15 km; ARSO mag NIET claimen."
+    }
+  ],
+
+  "collision": [
+    {
+      "name": "Collision · Bled: IT-ROOD vs SI-GEEL (authority > severity)",
+      "input": { "lat": 46.37, "lon": 14.11, "country": "SI" },
+      "synthetic_providers": [
+        { "authority": "Protezione Civile", "level": "red" },
+        { "authority": "ARSO", "level": "yellow" }
+      ],
+      "expected": { "country": "SI", "authority": "ARSO" },
+      "must_not_select": ["Protezione Civile"],
+      "note": "ARSO wint NIET omdat geel sterker is dan rood, maar omdat Italië geen bevoegdheid heeft op SI-grondgebied. De gate zit vóór de aggregatie."
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# systemd-timer: vervangt cron. Geometrie maandelijks is genoeg; kleuren dagelijks.
+# De refresh doet beide; dagelijks draaien is goedkoop (kleuren klein, geometrie idempotent).
+[Unit]
+Description=Weerwijsheid dagelijkse dataverversing
+
+[Timer]
+OnCalendar=*-*-* 04:30:00
+RandomizedDelaySec=15m
+Persistent=true
+
+[Install]
+WantedBy=timers.target

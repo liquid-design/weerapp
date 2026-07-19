@@ -1,0 +1,56 @@
+{
+  "_comment": "Model Registry (ADR-022). Centrale kennis over modellen: type, resolutie, basisgewicht en voorkeursterrein. 'label' moet exact overeenkomen met wat de provider-adapters als bronnaam emitteren. 'weight' is het basisgewicht in de gewogen consensus; past het voorkeursterrein bij de locatie, dan krijgt het model een terreinbonus. provider_ids koppelt hetzelfde model aan meerdere providers (voorbereiding voor Windy als tweede provider).",
+  "models": {
+    "ecmwf": {
+      "label": "ECMWF", "type": "global", "resolution_km": 9, "weight": 1.0,
+      "preferred_terrain": ["laagland", "kust", "vlakte", "hoogvlakte", "mediterraan"],
+      "provider_ids": { "open_meteo": "ecmwf_ifs04" }
+    },
+    "icon_eu": {
+      "label": "ICON-EU", "type": "regional", "resolution_km": 7, "weight": 1.0,
+      "preferred_terrain": ["gemengd", "heuvel"],
+      "provider_ids": { "open_meteo": "icon_eu", "windy": "iconEu" }
+    },
+    "icon_d2": {
+      "label": "ICON-D2", "type": "local", "resolution_km": 2.2, "weight": 1.1,
+      "preferred_terrain": ["hooggebergte", "dal", "berg", "alpiene overgang"],
+      "provider_ids": { "open_meteo": "icon_d2", "windy": "iconD2" }
+    },
+    "arome": {
+      "label": "AROME", "type": "convection", "resolution_km": 1.3, "weight": 1.1,
+      "preferred_terrain": ["gemengd", "vlakte", "kust"],
+      "provider_ids": { "open_meteo": "meteofrance_arome_france", "windy": "arome" }
+    },
+    "metno": {
+      "label": "MET Norway", "type": "regional", "resolution_km": 1, "weight": 1.1,
+      "preferred_terrain": ["kust", "berg", "bos"],
+      "provider_ids": { "open_meteo": "metno_seamless" }
+    },
+    "ukmo": {
+      "label": "UKMO", "type": "regional", "resolution_km": 2, "weight": 1.05,
+      "preferred_terrain": ["kust", "heuvel"],
+      "provider_ids": { "open_meteo": "ukmo_seamless" }
+    },
+    "gfs": {
+      "label": "GFS", "type": "fallback", "resolution_km": 25, "weight": 0.8,
+      "preferred_terrain": [],
+      "provider_ids": { "open_meteo": "gfs_seamless", "windy": "gfs" }
+    },
+    "best_match": {
+      "label": "Open-Meteo (auto)", "type": "auto", "resolution_km": null, "weight": 0.9,
+      "preferred_terrain": [],
+      "provider_ids": { "open_meteo": "best_match" }
+    },
+    "openweather": {
+      "label": "OpenWeather", "type": "proprietary", "resolution_km": null, "weight": 0.85,
+      "preferred_terrain": [],
+      "provider_ids": { "openweather": "proprietary" }
+    },
+    "weerlive": {
+      "label": "Weerlive (KNMI)", "type": "observation", "resolution_km": null, "weight": 1.3,
+      "preferred_terrain": [],
+      "provider_ids": { "weerlive": "knmi" }
+    }
+  },
+  "terrain_bonus": 1.2
+}

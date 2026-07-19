@@ -1,0 +1,26 @@
+{
+  "_comment": "Referentie van het genormaliseerde schema dat providers samen opleveren.",
+  "location": "Camping Italië",
+  "coordinates": { "lat": 45.8, "lon": 11.5 },
+  "timestamp": "2026-07-16T14:00:00",
+  "conditions": {
+    "temperature": 28,
+    "feels_like": 31,
+    "wind": { "speed": 18, "gust": 55 },
+    "rain": { "next_hours": 12, "amount": 22 },
+    "storm": { "cape": 2800, "lightning_distance": 25 }
+  },
+  "sources": {
+    "temperature": { "provider": "OpenWeather", "time": "14:00", "confidence": "matig", "mock": true },
+    "wind":        { "provider": "Windy ECMWF", "time": "14:00", "confidence": "hoog",  "mock": true },
+    "rain":        { "provider": "OpenWeather", "time": "14:00", "confidence": "matig", "mock": true },
+    "storm":       { "provider": "Windy ECMWF", "time": "14:00", "confidence": "hoog",  "mock": true },
+    "alert":       { "provider": "Meteoalarm",  "time": "13:00", "confidence": "hoog",  "mock": true }
+  },
+  "alert": { "level": "orange", "authority": "Protezione Civile" },
+  "risk": {
+    "level": "orange",
+    "reason": ["windstoten 55 km/u (> 40)", "CAPE 2800 (matig-sterk)", "bliksem op 25 km", "kwetsbaar verblijf: tent"],
+    "action": "Verwijder luifel/vouwwanden en beoordeel je verblijf. Blijf bij onweer niet in de tent."
+  }
+}
