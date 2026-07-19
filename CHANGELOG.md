@@ -5,6 +5,16 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
 = minimaal MINOR; datamodel-breuk (locations.json, zone-contract) = MAJOR. Puur additief = PATCH/MINOR.
 
 ## [Unreleased]
+### Deploy (Fase B — VM `weer`, 2026-07-19)
+- **Eerste productie-deploy uitgevoerd** (stap 1–11): app via git naar `/opt/weerwijsheid/app`,
+  venv + systemd (`weerwijsheid.service` + `refresh.timer`), nginx (`server_name weer.home.lan`).
+  Mijlpaal 1 (Italië) groen: `verify_routing` 14/0/0, `/api/context` t/m autoriteit, health 200.
+  Bewijsstuk: `deploy/evidence/first-production-run.md`.
+- **`docs/OPERATIONS.md`** — runbook op basis van de echte deploy: start/stop/status, git-update
+  (nooit zip/scp), DNS via Technitium, egress-allowlist, nieuw land uitrollen, backup/recovery.
+- **Bekend issue vastgelegd:** `refresh_zones.sh` sourcet `.venv` in de app-map, maar de venv staat
+  op `/opt/weerwijsheid/venv` → refresh-timer faalt tot fix (zie OPERATIONS §6). IT live-kleurenfeed
+  (DPC-bulletin op GitHub) bevroren sinds 2022-09-03 → eerlijk `UNAVAILABLE` (OPERATIONS §7).
 ### Toegevoegd (pre-deploy)
 - Deploy-kit in `deploy/`: systemd-units (api + refresh-timer), directorycontract,
   deploy-checklist met validatierun (mijlpaal 1 = Italië, volledige keten).
