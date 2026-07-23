@@ -8,12 +8,22 @@
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="map/styles.css">
+<link rel="stylesheet" href="hemel/style.css">
 </head>
 <body>
 <header>
-  <h1>🌦️ Weerwijsheid</h1>
-  <div class="sub">Ik zie iets → wat betekent het → wat doe ik?</div>
+  <h1 id="appTitle">🌦️ Weerwijsheid</h1>
+  <div class="sub" id="appSub">Ik zie iets → wat betekent het → wat doe ik?</div>
 </header>
+
+<!-- Domein-switcher (ADR-033). Weer = default. Een niveau BOVEN de tabbladen, omdat
+     Heldere Hemel een ander soort claim doet: eigen model, geen officiële autoriteit. -->
+<nav class="domains" id="domains">
+  <button class="domain active" data-d="weer">🌦️ Weer</button>
+  <button class="domain" data-d="hemel">✦ Heldere Hemel</button>
+</nav>
+
+<div class="domein" id="domein-weer">
 
 <nav class="tabs" id="tabs">
   <div class="tab active" data-p="live">📍 Live</div>
@@ -132,10 +142,43 @@
   </section>
 
   <div class="foot">
-    Weerwijsheid v2 · leeromgeving + beslisassistent · draait lokaal op je LXC<br>
+    Weerwijsheid v2 · leeromgeving + beslisassistent · draait lokaal op je VM<br>
     Data via de backend-adapters. Bij levensgevaar volg je de officiële dienst en bel je 112.
   </div>
 </main>
+</div><!-- /domein-weer -->
+
+<!-- HELDERE HEMEL — eigen beslisdomein (ADR-033). Markup 1-op-1 uit de originele app;
+     styling komt uit hemel/style.css (volledig gescoped onder #domein-hemel).
+     Scripts laden lazy via domain.js bij de eerste activering. -->
+<div class="domein" id="domein-hemel" hidden>
+  <div class="controls">
+    <div class="search">
+      <input id="q" type="text" placeholder="Plaats, camping of adres…" autocomplete="off" />
+      <button id="searchBtn" class="btn">Zoek</button>
+    </div>
+    <button id="hhGeoBtn" class="btn ghost">Gebruik mijn locatie</button>
+    <div id="suggest" class="suggest"></div>
+  </div>
+
+  <main>
+    <nav class="app-tabs">
+      <button class="app-tab on" data-tab="forecast">Heldere Hemel</button>
+      <button class="app-tab" data-tab="sky">Planeten &amp; sterren</button>
+      <button class="app-tab" data-tab="theory">Theorie</button>
+    </nav>
+    <div id="status" class="status"></div>
+    <section id="results"></section>
+    <section id="sky" class="sky-section" hidden></section>
+    <section id="theory" class="theory-section" hidden></section>
+
+    <div class="foot">
+      Heldere Hemel · eigen scoremodel — <b>geen officiële waarschuwingsdienst</b>.
+      Lichtvervuiling is een schatting (gloedmodel), geen meting.
+    </div>
+  </main>
+</div><!-- /domein-hemel -->
+
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="map/popup.js"></script>
@@ -143,5 +186,6 @@
 <script src="map/map.js"></script>
 <script src="app.js"></script>
 <script src="theory.js"></script>
+<script src="domain.js"></script>
 </body>
 </html>

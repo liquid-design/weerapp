@@ -17,6 +17,16 @@ moeten de volgende attributies behouden blijven. Machine-leesbaar per land:
 | AT | Statistik Austria — Gemeinden | CC-BY-4.0 | naamsvermelding "Datenquelle: Statistik Austria" |
 | SI | ARSO / MeteoAlarm | CC-BY-4.0 (te verifiëren) | naamsvermelding |
 
+## Heldere Hemel (sterrenkijk-domein, ADR-033)
+| Onderdeel | Bron | Licentie |
+|---|---|---|
+| Weer + 250 hPa straalstroom | Open-Meteo | CC-BY-4.0 |
+| Locatie zoeken | Nominatim (OpenStreetMap) | ODbL |
+| Stedendata voor het gloedmodel (`lp-data.js`) | `all-the-cities` (GeoNames) | CC-BY |
+| Zon, maan, planeten | lokaal berekend (eigen code) | — |
+
+De lichtvervuiling is een **schatting** via een Walker/Garstang-gloedmodel, geen meting.
+
 ## Weermodellen & observaties (runtime)
 Open-Meteo (ECMWF/ICON/AROME, keyless, CC-BY-4.0) · OpenWeather · WeatherAPI · IQAir ·
 Weerlive (KNMI-observaties, NL). Kaart: Leaflet + © OpenStreetMap-contributors (ODbL).

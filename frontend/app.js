@@ -5,7 +5,10 @@ const LVLTXT = {green:'Rustig',yellow:'Opletten',orange:'Maatregelen',red:'Beoor
 const LVLABBR = {green:'g',yellow:'y',orange:'o',red:'r',violet:'p'};
 
 /* ---------- tabs ---------- */
-const tabs=document.querySelectorAll('.tab'), panels=document.querySelectorAll('.panel');
+// Gescoped naar het weer-domein (ADR-033): zo kan markup uit Heldere Hemel de
+// tabnavigatie nooit kapen, en omgekeerd.
+const _weer=document.getElementById('domein-weer')||document;
+const tabs=_weer.querySelectorAll('.tab'), panels=_weer.querySelectorAll('.panel');
 tabs.forEach(t=>t.addEventListener('click',()=>{
   tabs.forEach(x=>x.classList.toggle('active',x===t));
   panels.forEach(p=>p.classList.toggle('active',p.id===t.dataset.p));

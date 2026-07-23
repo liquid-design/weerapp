@@ -40,6 +40,11 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
 - Deploy-kit in `deploy/`: systemd-units (api + refresh-timer), directorycontract,
   deploy-checklist met validatierun (mijlpaal 1 = Italië, volledige keten).
 ### Toegevoegd
+- **Heldere Hemel geïntegreerd** (ADR-033): sterrenkijk-app als tweede beslisdomein met
+  domein-switcher bovenaan (Weer = default). HH-code onder `frontend/hemel/`, CSS volledig
+  gescoped onder `#domein-hemel`, `geoBtn` → `hhGeoBtn`, scripts lazy geladen
+  (`lp-data.js` is 1,8 MB), HH-init lazy-load-proof gemaakt, WW-tablogica gescoped naar
+  `#domein-weer`.
 - Repo publiek: LICENSE (MIT), NOTICE.md (data-attributie per bron), SECURITY.md; README
   licentie-sectie. HOST-config + nginx-template (intern HTTP) + DNS-stap in deploy-checklist.
 ### Governance

@@ -36,6 +36,12 @@ Verifiëren: `python backend/verify_routing.py` (governance, 14 checks) en
 - **Databron-bewaking**: ontbrekende of verouderde zonedata geeft een banner in de app met
   het herstelcommando (`/api/data_health`).
 
+## Twee domeinen
+Bovenaan schakel je tussen **🌦️ Weer** (default) en **✦ Heldere Hemel** (sterrenkijk-forecast).
+Belangrijk onderscheid (ADR-033): Weer stoelt op de *bevoegde officiële autoriteit* per land;
+Heldere Hemel is een **eigen model zonder autoriteit** — de lichtvervuiling is een schatting,
+geen meting. Een hemelscore is dus nooit een waarschuwing.
+
 ## Dekking (7 landen)
 | Land | Autoriteit | Zones | Live kleuren | Live waarschuwing |
 |---|---|---|---|---|

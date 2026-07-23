@@ -250,6 +250,64 @@ iconD2, aromeFrance en gfs. Het **gratis/testplan levert geschudde nepdata** (he
 meetelt na een upgrade. Windy staat dus veilig standaard uit tot er én een token én échte data is.
 **Status:** Accepted
 
+## ADR-033 — Heldere Hemel als tweede beslisdomein in één applicatie
+**Status:** Accepted — geïmplementeerd (frontend-integratie; zie Uitvoering).
+
+**Context.** "Heldere Hemel" is een aparte, werkende client-side app die per nacht scoort hoe
+goed het is om naar de sterren te kijken (atmosfeer x maan x lichtvervuiling x seeing). Zelfde
+gebruiker, zelfde vraagvorm ("wat betekent de lucht voor wat ik wil doen"), maar een ander
+domein. Twee losse apps betekent twee URL's, twee deploys en twee plekken om te onderhouden.
+
+**Besluit.**
+1. **Eén applicatie, twee-niveau-navigatie.** Boven de bestaande tabbalk komt een
+   *domein-switcher*: `[Weer] [Heldere Hemel]`. **Weer is de default** bij openen van
+   `http://weer.home.lan`. Het actieve domein bepaalt welke tabrij eronder staat
+   (Weer: Live/Getallen/... — Hemel: Heldere Hemel/Planeten & sterren/Theorie).
+2. **Heldere Hemel behoudt z'n eigen code**, ongewijzigd van logica, onder `frontend/hemel/`.
+   Geen herschrijving naar de WW-backend: HH praat rechtstreeks met Open-Meteo (keyless) en
+   heeft geen provider-/autoriteitsketen nodig.
+3. **Isolatie via scoping** (zie Uitvoering): HH-CSS wordt gescoped, HH-element-ID's krijgen een
+   prefix, HH-scripts laden lazy bij eerste activering.
+4. **NORMATIEF — het autoriteitsonderscheid.** Weerwijsheid stoelt op *de bevoegde autoriteit
+   spreekt* (ADR-030): DWD over Duitsland, ARSO over Slovenie. **Heldere Hemel heeft geen
+   autoriteit** — er bestaat geen nationale sterrenkijkdienst. De score is een eigen model met
+   een geschatte lichtvervuiling (Walker/Garstang-gloedmodel: *schatting, geen meting*).
+   De UI mag die twee claims nooit vermengen: een HH-score is nooit een waarschuwing, draagt
+   nooit een autoriteitslabel, en verschijnt niet in `warning_status`/`data_health`.
+
+**Overwogen alternatief (afgewezen).** Twee losse documenten (`/` en `/hemel`) met een gedeelde
+switcher: nul botsingsrisico, geen scoping nodig, 1,8 MB laadt alleen op de hemel-pagina.
+Afgewezen ten gunste van een samenhangender ervaring in één pagina; de meerkosten hieronder
+worden bewust geaccepteerd.
+
+**Gevolgen (eerlijk).**
+- **CSS-botsing is het hoofdrisico**: beide apps stylen `body`, `header`, `main`, `h1`, `.card`,
+  `.tab`, `.btn`. HH-CSS moet mechanisch gescoped worden onder een wrapper.
+- **`.tab`-kaping**: WW selecteert tabs met `document.querySelectorAll('.tab')`. Zonder scoping
+  pikt dat HH-markup op en breekt de navigatie van beide domeinen.
+- **1,8 MB `lp-data.js` MOET lazy laden.** Anders betaalt elke weer-paginalading die prijs.
+- HH's eigen header (zoekveld + "Gebruik mijn locatie") verhuist naar het HH-paneel; de globale
+  header toont alleen de domein-switcher.
+- Twee "Theorie"-tabs bestaan naast elkaar — correct: ze horen bij verschillende domeinen en
+  slechts een domein is tegelijk actief.
+- Geocoding blijft voorlopig dubbel (HH: Nominatim direct; WW: `/api/geocode`). Genoteerd als
+  latere opruiming, geen blocker.
+- Verifiers (`verify_routing`, `verify_boundaries`) raken HH niet: die bewaken
+  waarschuwingsgovernance en zonedata.
+
+**Uitvoering (plan, nog niet gebouwd).**
+1. `frontend/hemel/` — HH-bestanden ongewijzigd, behalve de drie ingrepen hieronder.
+2. **CSS-scoping**: alle selectors in `hemel/style.css` prefixen met `#domein-hemel `;
+   `body`/`html`-regels handmatig beoordelen (achtergrond/lettertype van WW wint).
+3. **ID-prefix**: HH-element-ID's krijgen `hh-` (minimaal `geoBtn` botst; `q`, `status`,
+   `results`, `sky`, `theory` zijn generiek genoeg om preventief mee te nemen). HH's JS
+   aanpassen op dezelfde prefix.
+4. **Lazy load**: HH-scripts (incl. `lp-data.js`) pas injecteren bij de eerste klik op de
+   domein-switcher; daarna HH's init aanroepen.
+5. **Domein-switcher** in `index.html` + WW's tab-logica scopen naar de actieve domein-container.
+6. Documentatie: README-dekking, `NOTICE.md` uitbreiden met HH-bronnen (GeoNames CC-BY voor de
+   stedendata; Open-Meteo; Nominatim), AGENTS.md Current State, CHANGELOG.
+
 ## ADR-032 — Live zonekleuren via losgekoppeld statusbestand
 **Status:** Accepted (IT + DE; overige landen bewust 'kleuren onbekend').
 

@@ -175,3 +175,21 @@ ul.why{margin:4px 0 0}
   background:#f6ecd6;border:1px solid #d8bd7e;color:#7a5e1e}
 .data-health .dh-fix{margin-top:6px;font-size:12px;color:#6b5a2e}
 .data-health code{background:#efe4c8;padding:1px 5px;border-radius:4px}
+
+/* ---------- domein-switcher (ADR-033): Weer | Heldere Hemel ---------- */
+.domains{display:flex;justify-content:center;gap:8px;padding:12px 12px 0;
+  background:linear-gradient(160deg,#faf5eb,#f0e8d9)}
+.domain{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+  padding:9px 18px;border-radius:999px 999px 0 0;border:1px solid var(--line);
+  border-bottom:none;background:#f6f0e5;color:var(--muted);font-size:14px;
+  font-family:inherit;cursor:pointer;transition:.15s;user-select:none;position:relative;top:1px}
+.domain:hover{color:var(--ink)}
+.domain.active{background:var(--card2);color:var(--ink);font-weight:700;
+  box-shadow:0 -2px 0 var(--accent) inset}
+.domein[hidden]{display:none}
+/* Integratie-correcties voor het hemel-domein: HH's originele <header> gaf de
+   zoekbalk horizontale padding; die wrapper is hier vervangen door de gedeelde
+   header, dus we geven .controls dezelfde ademruimte terug. Bewust HIER en niet
+   in hemel/style.css — dat bestand blijft een zuivere transformatie van het origineel. */
+#domein-hemel .controls{padding:0 18px}
+@media (max-width:560px){ .domain{padding:9px 13px;font-size:13.5px} }
