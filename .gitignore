@@ -11,6 +11,13 @@ data/feedback.json
 # build-ontvangstbewijs (per-fetch state met fetched_at; regenereerbaar via refresh/kickstart)
 frontend/map/data/zone_manifest.json
 
+# runtime-state, GEEN bron (ADR-032: tijdswaarde-data hoort niet in de repo).
+# locations.json = persoonlijke locaties (repo is publiek) — startpunt: locations.example.json
+# warning_status.json = dagelijkse zonekleuren, regenereerbaar via tools/refresh_zones.sh
+# Let op: back-uppen bij herinstallatie, zie OPERATIONS.md.
+config/locations.json
+frontend/map/data/warning_status.json
+
 # lokale deploy-artefacten (niet committen)
 .DS_Store
 weerwijsheid-v3.zip

@@ -104,6 +104,16 @@ sudo -u weerwijsheid ssh -T git@github.com
 > *Historie:* de éérste clone had nog geen deploy-key en ging via SSH agent-forwarding
 > (`ssh -A`, met de Mac-key) + een chown-omweg. Sinds de deploy-key is dat niet meer nodig.
 
+> **Untracked runtime-state (ADR-032).** `config/locations.json` en
+> `frontend/map/data/warning_status.json` staan **niet** in git (gitignored) — het is
+> tijdswaarde-data, geen bron. Gevolg voor de update: een `pull` raakt ze nooit meer aan, dus
+> `--ff-only` breekt er niet meer op. Twee aandachtspunten bij een pull die ze wél lokaal
+> gewijzigd aantreft (overgangssituatie of handmatige edit): **back-up ze eerst buiten de
+> checkout** en zet ze daarna terug (eigendom `weerwijsheid`) — ze staan in de backup-sectie §8.
+> `warning_status.json` is bovendien regenereerbaar via de refresh-timer (§6); `locations.json`
+> niet — dat is onvervangbaar. Verse clone zonder `locations.json`: de app valt terug op de
+> default (`config/locations.example.json`), geen crash.
+
 ---
 
 ## 3. DNS — **terugkerend struikelpunt, lees dit eerst bij "kan de naam niet bereiken"**

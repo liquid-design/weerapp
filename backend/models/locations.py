@@ -2,12 +2,20 @@
 
 Schrijven gebeurt atomair (temp-bestand + os.replace) zodat locations.json nooit
 half weggeschreven kan raken bij een crash of gelijktijdige toegang.
+
+`config/locations.json` is **untracked runtime-state** (ADR-032: tijdswaarde-data hoort
+niet in de repo — het zijn de persoonlijke locaties van de gebruiker en de repo is publiek).
+Een verse clone heeft het bestand dus niet; `config/locations.example.json` is het startpunt.
+Daarom faalt `load_locations()` niet op een ontbrekend of stuk bestand maar valt het terug op
+DEFAULT_LOCATIONS — anders zou een verse clone crashen op de eerste request.
 """
 import json
 import os
 import re
 
-from config import LOCATIONS_FILE
+from config import CONFIG_DIR, LOCATIONS_FILE
+
+DEFAULT_LOCATIONS = [{"name": "Thuis", "lat": 51.05, "lon": 4.42}]
 
 
 def slugify(name):
@@ -15,11 +23,23 @@ def slugify(name):
 
 
 def load_locations():
-    with open(LOCATIONS_FILE, "r", encoding="utf-8") as fh:
-        return json.load(fh)
+    """Lees de locaties; val terug op de default als het bestand ontbreekt of onleesbaar is.
+
+    Bewust tolerant: het bestand is untracked runtime-state (zie modulendocstring), dus
+    'ontbreekt' is een normale toestand bij een verse clone, geen fout.
+    """
+    try:
+        with open(LOCATIONS_FILE, "r", encoding="utf-8") as fh:
+            locations = json.load(fh)
+    except (FileNotFoundError, ValueError, OSError):
+        return [dict(loc) for loc in DEFAULT_LOCATIONS]
+    if not isinstance(locations, list) or not locations:
+        return [dict(loc) for loc in DEFAULT_LOCATIONS]
+    return locations
 
 
 def save_locations(locations):
+    os.makedirs(CONFIG_DIR, exist_ok=True)  # verse clone/herinstallatie: map kan ontbreken
     tmp = LOCATIONS_FILE + ".tmp"
     with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(locations, fh, ensure_ascii=False, indent=2)
