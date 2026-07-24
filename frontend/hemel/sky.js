@@ -189,7 +189,11 @@
       (posTxt ? '<div class="cst-pos">' + posTxt + '</div>' : '') + '</div>';
     ov.addEventListener("click", (e) => { if (e.target === ov) closeConstellation(); });
     ov.querySelector(".cst-close").onclick = closeConstellation;
-    document.body.appendChild(ov);
+    // Hang de overlay BINNEN het hemel-domein: de CSS is gescoped onder
+    // #domein-hemel (ADR-033), dus buiten die container verliest .cst-overlay
+    // z'n position:fixed en valt hij onderaan de pagina. Fallback op body
+    // zodat HH standalone blijft werken.
+    (document.getElementById("domein-hemel") || document.body).appendChild(ov);
     document.addEventListener("keydown", escClose);
   }
   HH.openConstellation = openConstellation;
