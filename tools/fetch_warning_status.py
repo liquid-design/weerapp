@@ -101,7 +101,25 @@ def status_de():
 
 
 STATUS_FETCHERS = {"IT": status_it, "DE": status_de}
-# FR/NL/BE/AT/SI: nog geen statusbron aangesloten -> bewust afwezig (kaart toont 'kleuren onbekend').
+# FR/NL/BE/SI: nog geen statusbron aangesloten -> bewust afwezig (kaart toont 'kleuren onbekend').
+#
+# AT — onderzocht 2026-07-24, BEWUST NIET aangesloten (de bron is prima; ONZE geometrie mist de sleutel).
+#   Bron (keyless, geverifieerd met echte requests):
+#     GET https://warnungen.zamg.at/wsapp/api/getWarnstatus
+#       -> FeatureCollection; per feature properties {wtype, wlevel, start, end, warnid, gemeinden}.
+#     Spec: https://openapi.hub.geosphere.at/warnapi/v1/openapi.json (schema WarningStatusFeature).
+#     wlevel = ernst: 1=yellow, 2=orange, 3=red (geen 'green'; een gemeinde zonder waarschuwing is groen).
+#     gemeinden = array van 5-cijferige Statistik-Austria GKZ-codes, bv. ["10101","60101"] (geverifieerd:
+#       getWarningsForCoords geeft gemeindenr Wien=90101, Graz=60101, Innsbruck=70101). Geometrie is
+#       EPSG:31287, maar irrelevant — we koppelen op code, niet op geometrie.
+#   Blokkade: austria_gemeinden.geojson draagt die codes NIET. Alle 2114 features hebben zone_id="AT-"
+#     (source_key 'ID' is nooit ingevuld door de normalisatie) en zone=null. Overlap API<->bestand = 0/2114;
+#     een join is onmogelijk. status_at() aansluiten zou AT's legenda op 'live kleuren' zetten terwijl de
+#     kaart alles groen toont -> valse 'alles rustig' (ADR-032: UNAVAILABLE != SAFE). Daarom: niets gebouwd.
+#   Vereiste vóór AT-kleuren: her-fetch de AT-geometrie zodat zone_id = "AT-"+GKZ vult (fetch_boundaries.py,
+#     ADR-031). Zodra dat klopt is status_at() analoog aan status_de() triviaal: per feature in getWarnstatus,
+#     kleur = {1:'yellow',2:'orange',3:'red'}[wlevel], voor elke code in properties['gemeinden'] key
+#     "AT-"+code, meest-ernstige-wint.
 
 
 def main(countries):

@@ -5,6 +5,17 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
 = minimaal MINOR; datamodel-breuk (locations.json, zone-contract) = MAJOR. Puur additief = PATCH/MINOR.
 
 ## [Unreleased]
+### Onderzocht (geen codewijziging)
+- **AT live waarschuwingskleuren — uitgesteld; bron is bruikbaar, maar onze geometrie mist de sleutel.**
+  GeoSphere `getWarnstatus` (keyless: `https://warnungen.zamg.at/wsapp/api/getWarnstatus`; spec
+  `https://openapi.hub.geosphere.at/warnapi/v1/openapi.json`) levert per waarschuwing `wlevel`
+  (1=geel, 2=oranje, 3=rood) en een `gemeinden`-array met 5-cijferige Statistik-Austria GKZ-codes
+  (bv. `"10101"`). Bruikbaar en 1-op-1 met onze bedoelde sleutel. **Maar** `austria_gemeinden.geojson`
+  bevat die codes niet: alle 2114 features hebben `zone_id="AT-"` (`source_key` `ID` leeg, `zone=null`),
+  dus overlap met de API is 0/2114 en een join is onmogelijk. Aansluiten zou een valse 'alles groen'
+  tonen (ADR-032: UNAVAILABLE ≠ SAFE), daarom is `status_at()` **niet** geregistreerd en blijft AT op
+  'kleuren onbekend'. Vervolgstap: her-fetch de AT-geometrie (`fetch_boundaries.py`, ADR-031) zodat
+  `zone_id = "AT-"+GKZ`; daarna is `status_at()` analoog aan `status_de()` triviaal.
 ### Deploy (Fase B — VM `weer`, 2026-07-19)
 - **Eerste productie-deploy uitgevoerd** (stap 1–11): app via git naar `/opt/weerwijsheid/app`,
   venv + systemd (`weerwijsheid.service` + `refresh.timer`), nginx (`server_name weer.home.lan`).
