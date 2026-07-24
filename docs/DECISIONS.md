@@ -290,8 +290,12 @@ worden bewust geaccepteerd.
   header toont alleen de domein-switcher.
 - Twee "Theorie"-tabs bestaan naast elkaar — correct: ze horen bij verschillende domeinen en
   slechts een domein is tegelijk actief.
-- Geocoding blijft voorlopig dubbel (HH: Nominatim direct; WW: `/api/geocode`). Genoteerd als
-  latere opruiming, geen blocker.
+- Geocoding-dubbeling **opgelost** (2026-07-24): HH's zoekfunctie probeert nu **backend-eerst**
+  (`/api/geocode`, dat `NOMINATIM_EMAIL` meestuurt zoals het Nominatim-beleid vraagt, plus
+  server-side cache) en valt **alleen bij een fout** terug op de directe Nominatim-aanroep. Zo krijgt
+  de geïntegreerde app het nette pad terwijl Heldere Hemel standalone blijft werken (deze isolatie-
+  eigenschap). De HH-UI bleef ongewijzigd; het backend-antwoord wordt gemapt naar HH's suggestievorm
+  (o.a. `" · <land>"` uit de naam gestript). Zie `frontend/hemel/forecast.js`.
 - Verifiers (`verify_routing`, `verify_boundaries`) raken HH niet: die bewaken
   waarschuwingsgovernance en zonedata.
 

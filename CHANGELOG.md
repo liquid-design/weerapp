@@ -5,6 +5,14 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
 = minimaal MINOR; datamodel-breuk (locations.json, zone-contract) = MAJOR. Puur additief = PATCH/MINOR.
 
 ## [Unreleased]
+### Gewijzigd
+- **Eén geocoding-pad — backend-eerst met terugval (ADR-033).** Heldere Hemel riep Nominatim
+  rechtstreeks vanuit de browser aan; nu probeert HH's zoekfunctie eerst `/api/geocode` (stuurt
+  `NOMINATIM_EMAIL` mee conform Nominatim-beleid + server-side cache) en valt alléén bij een fout
+  terug op de directe Nominatim-aanroep — zo blijft HH standalone werkend. De HH-UI is ongewijzigd;
+  het backend-antwoord (`[{name, display_name, lat, lon, type, country}]`) wordt gemapt naar HH's
+  suggestievorm (`" · <land>"` uit de naam gestript). Alleen `frontend/hemel/forecast.js`.
+
 ### Onderzocht (geen codewijziging)
 - **AT live waarschuwingskleuren — uitgesteld; bron is bruikbaar, maar onze geometrie mist de sleutel.**
   GeoSphere `getWarnstatus` (keyless: `https://warnungen.zamg.at/wsapp/api/getWarnstatus`; spec

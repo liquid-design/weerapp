@@ -19,7 +19,41 @@
   // een puur plaatsen-geocoder. Keyless en CORS-vriendelijk vanuit de browser.
   // Nominatim-beleid: laag volume, ~1 verzoek/seconde — de zoekbalk gebruikt
   // daarom debounce (zie app.js), niet één verzoek per toetsaanslag.
+  // Backend-eerst met terugval (ADR-033). In de geïntegreerde app loopt geocoding via
+  // /api/geocode: die stuurt NOMINATIM_EMAIL mee (Nominatim-gebruiksbeleid) en cachet
+  // server-side. Faalt de backend, of draait HH standalone (index.html direct geopend,
+  // geen backend), dan valt hij terug op de directe Nominatim-aanroep — zo blijft Heldere
+  // Hemel losstaand werkend, een eigenschap die ADR-033 expliciet bewaakt.
   async function geocode(q, signal) {
+    try {
+      return await geocodeBackend(q, signal);
+    } catch (e) {
+      if (e.name === "AbortError") throw e;   // afgebroken zoekopdracht: niet terugvallen
+      return await geocodeNominatim(q, signal);
+    }
+  }
+
+  // Weerwijsheid-backend: /api/geocode -> [{name, display_name, lat, lon, type, country}].
+  // Genormaliseerd naar HH's suggestievorm. De backend zet " · <land>" achter de naam
+  // (_friendly_name); dat strippen we zodat de HH-UI ongewijzigd dezelfde plaatsnaam toont.
+  async function geocodeBackend(q, signal) {
+    const r = await fetch("/api/geocode?q=" + encodeURIComponent(q),
+      { signal, headers: { "Accept": "application/json" } });
+    if (!r.ok) throw new Error("backend geocode gaf " + r.status);
+    const data = await r.json();
+    return data.map((it) => ({
+      name: (it.name || "").replace(/ · [A-Z]{2}$/, ""),
+      display_name: it.display_name || "",
+      lat: parseFloat(it.lat),
+      lon: parseFloat(it.lon),
+      type: it.type || "",
+      category: "",
+      country: (it.country || "").toUpperCase(),
+    }));
+  }
+
+  // Directe Nominatim-aanroep (keyless, CORS-vriendelijk) — de standalone/terugval-weg.
+  async function geocodeNominatim(q, signal) {
     const url = "https://nominatim.openstreetmap.org/search?format=jsonv2" +
       "&addressdetails=1&limit=6&accept-language=nl&q=" + encodeURIComponent(q);
     const r = await fetch(url, { signal, headers: { "Accept": "application/json" } });
