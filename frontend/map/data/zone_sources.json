@@ -88,7 +88,7 @@
       "loader": "statbel",
       "dataset": "Statbel provinciegrenzen",
       "source": "mathiasleroy/Belgium-Geographic-Data (Statbel/NGI provincies, WGS84) — meegeleverd",
-      "source_key": "naam",
+      "source_key": "AdPrKey",
       "format": "shapefile",
       "license": "CC-BY-4.0",
       "crs": "EPSG:31370",
