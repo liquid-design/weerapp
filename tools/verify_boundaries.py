@@ -46,12 +46,27 @@ COUNTRY_FILE = {
     "at": "austria", "si": "slovenia", "it": "italy",
 }
 
+
+def registered_files():
+    """Bestandsnamen die in zone_sources.json als `file` staan — het register is leidend (ADR-031).
+    Alleen deze bestanden zijn zonebestanden en moeten aan het contract voldoen. Andere *.geojson in
+    de datamap (landcontouren, modelvlakken) horen hier niet en worden overgeslagen, niet gefaald."""
+    reg = json.load(open(os.path.join(DATA, "zone_sources.json")))
+    return {rec["file"] for rec in reg["countries"].values() if rec.get("file")}
+
+
 if __name__ == "__main__":
     args = [a.lower() for a in sys.argv[1:]]
-    files = sorted(glob.glob(os.path.join(DATA, "*.geojson")))
+    registered = registered_files()
+    on_disk = sorted(glob.glob(os.path.join(DATA, "*.geojson")))
+    files = [f for f in on_disk if os.path.basename(f) in registered]
+    skipped = [f for f in on_disk if os.path.basename(f) not in registered]
     if args:
         stems = [COUNTRY_FILE.get(a, a) for a in args]
         files = [f for f in files if any(os.path.basename(f).lower().startswith(s) for s in stems)]
-    print(f"Controleer {len(files)} bestand(en) in {os.path.relpath(DATA)}:")
+    print(f"Controleer {len(files)} geregistreerd(e) bestand(en) in {os.path.relpath(DATA)}:")
     for f in files:
         check(f)
+    if skipped and not args:
+        print(f"Overgeslagen ({len(skipped)}× — niet in zone_sources.json, geen zonebestand): "
+              + ", ".join(os.path.basename(f) for f in skipped))
