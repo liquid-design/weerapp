@@ -5,6 +5,30 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
 = minimaal MINOR; datamodel-breuk (locations.json, zone-contract) = MAJOR. Puur additief = PATCH/MINOR.
 
 ## [Unreleased]
+### Toegevoegd
+- **AT live waarschuwingskleuren (ADR-032).** `status_at()` in `fetch_warning_status.py` haalt
+  GeoSphere `getWarnstatus` op (keyless): per feature `wlevel` (1=geel, 2=oranje, 3=rood) en een
+  `gemeinden`-array met 5-cijferige GKZ-codes. Sleutel `AT-<code>` = `zone_id`, meest-ernstige wint
+  per gemeente. Geregistreerd in `STATUS_FETCHERS`. Structurele sleutel-overlap 100% geverifieerd
+  (8/8 stads-GKZ uit `getWarningsForCoords` matchen ons bestand); op een rustige dag 0 niet-groen.
+
+### Gerepareerd
+- **AT-geometrie hersteld — verkeerde WFS-laag.** `austria_gemeinden.geojson` kwam uit de
+  `STATISTIK_AUSTRIA_GEM_MP_*`-laag (Gemeinden **Mittelpunkte** = punten, lege attributen), doordat
+  `_discover_layer` alfabetisch `sorted(names)[-1]` koos en `MP_` lexicografisch wint. De loader
+  kiest nu **expliciet** de nieuwste **GRENZEN**-laag (polygonen, `prefix`+8-cijferige datum, geen
+  `MP_`), en het register gebruikt de echte attribuutnamen: `source_key` `ID`→`g_id`, weergavenaam
+  `g_name`. Resultaat: 2114 features met gevulde `zone_id="AT-<GKZ>"`, `zone`-namen en MultiPolygonen
+  (EPSG:4326). Dit deblokkeerde de AT-kleuren hierboven.
+- **`verify_boundaries.py` is een echte poort geworden.** Controleert nu WAARDEN i.p.v. alleen of
+  velden bestaan: niet-lege `zone_id`-suffix na `<LAND>-`, niet-lege `zone`-naam, Polygon/MultiPolygon-
+  geometrie, en `source_key` in het bestand == register. Rapporteert per bestand hoeveel features
+  falen en geeft **exit-code 1** bij fouten. Blijft registry-gedreven (slaat niet-geregistreerde
+  bestanden als `authority_regions`/`model_coverage` over). Dit ving het AT-defect dat eerder langs
+  de bestaands-only check glipte.
+- **BE-register corrigeerde een leugen:** `zone_sources.json` BE `source_key` `naam`→`AdPrKey`
+  (het bestand klopte al; het register wees naar een niet-bestaand attribuut).
+
 ### Gewijzigd
 - **Eén geocoding-pad — backend-eerst met terugval (ADR-033).** Heldere Hemel riep Nominatim
   rechtstreeks vanuit de browser aan; nu probeert HH's zoekfunctie eerst `/api/geocode` (stuurt
@@ -24,6 +48,8 @@ Formaat: [Keep a Changelog] · Versienummers: [SemVer] (MAJOR.MINOR.PATCH).
   tonen (ADR-032: UNAVAILABLE ≠ SAFE), daarom is `status_at()` **niet** geregistreerd en blijft AT op
   'kleuren onbekend'. Vervolgstap: her-fetch de AT-geometrie (`fetch_boundaries.py`, ADR-031) zodat
   `zone_id = "AT-"+GKZ`; daarna is `status_at()` analoog aan `status_de()` triviaal.
+  **→ OPGELOST 2026-07-24** (zie Toegevoegd/Gerepareerd): de oorzaak was de verkeerde WFS-laag
+  (Mittelpunkte i.p.v. Grenzen); geometrie her-fetcht en `status_at()` aangesloten.
 ### Deploy (Fase B — VM `weer`, 2026-07-19)
 - **Eerste productie-deploy uitgevoerd** (stap 1–11): app via git naar `/opt/weerwijsheid/app`,
   venv + systemd (`weerwijsheid.service` + `refresh.timer`), nginx (`server_name weer.home.lan`).

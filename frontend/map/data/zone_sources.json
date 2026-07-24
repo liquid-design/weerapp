@@ -104,14 +104,14 @@
       "loader": "wfs_geojson",
       "dataset": "STATISTIK_AUSTRIA_GEM",
       "source": "https://www.statistik.at/gs-open/GEODATA/ows?service=WFS&version=2.0.0&request=GetFeature&typeName=GEODATA:STATISTIK_AUSTRIA_GEM_YYYYMMDD&outputFormat=application/json&srsName=EPSG:4326",
-      "source_key": "ID",
+      "source_key": "g_id",
       "format": "wfs",
       "license": "CC-BY-4.0",
       "crs": "EPSG:4326",
       "file": "austria_gemeinden.geojson",
       "present": true,
       "n_zones": 2114,
-      "note": "gemeente-niveau; laagnaam via capabilities-discovery (nieuwste GEM_-jaargang); mogelijk EPSG:31287 -> verify checkt CRS"
+      "note": "gemeente-niveau (GKZ=g_id, naam=g_name); discovery kiest de nieuwste GRENZEN-laag (polygonen), NIET de _MP_-Mittelpunkte (punten); srsName levert EPSG:4326"
     },
     "SI": {
       "authority": "ARSO",

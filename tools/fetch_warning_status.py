@@ -100,26 +100,39 @@ def status_de():
     return out, f"{len(out)} actieve Kreis-waarschuwingen"
 
 
-STATUS_FETCHERS = {"IT": status_it, "DE": status_de}
+def status_at():
+    """Oostenrijk: GeoSphere getWarnstatus — per feature `wlevel` (1=yellow, 2=orange, 3=red) en een
+    `gemeinden`-array met 5-cijferige GKZ-codes. Die code = `g_id` in austria_gemeinden.geojson, dus de
+    sleutel is `AT-<code>` (= zone_id). Alleen niet-groene gemeinden staan in het bestand; de rest is
+    groen (een gemeinde zonder waarschuwing ontbreekt in de feed). Meest-ernstige wint per gemeinde.
+
+    Bron keyless, geverifieerd: GET https://warnungen.zamg.at/wsapp/api/getWarnstatus (spec
+    https://openapi.hub.geosphere.at/warnapi/v1/openapi.json, schema WarningStatusFeature). De
+    geometrie in de feed is EPSG:31287 maar irrelevant — we koppelen op code, niet op geometrie."""
+    r = requests.get("https://warnungen.zamg.at/wsapp/api/getWarnstatus", headers=UA, timeout=60)
+    r.raise_for_status()
+    lvl = {1: "yellow", 2: "orange", 3: "red"}
+    order = ["green", "yellow", "orange", "red"]
+    out = {}
+    for f in r.json().get("features", []):
+        p = f.get("properties", {}) or {}
+        sev = lvl.get(p.get("wlevel"))
+        if not sev:
+            continue
+        for code in (p.get("gemeinden") or []):
+            key = f"AT-{code}"
+            if key not in out or order.index(sev) > order.index(out[key]):
+                out[key] = sev
+    return out, f"{len(out)} actieve gemeente-waarschuwingen"
+
+
+STATUS_FETCHERS = {"IT": status_it, "DE": status_de, "AT": status_at}
 # FR/NL/BE/SI: nog geen statusbron aangesloten -> bewust afwezig (kaart toont 'kleuren onbekend').
 #
-# AT — onderzocht 2026-07-24, BEWUST NIET aangesloten (de bron is prima; ONZE geometrie mist de sleutel).
-#   Bron (keyless, geverifieerd met echte requests):
-#     GET https://warnungen.zamg.at/wsapp/api/getWarnstatus
-#       -> FeatureCollection; per feature properties {wtype, wlevel, start, end, warnid, gemeinden}.
-#     Spec: https://openapi.hub.geosphere.at/warnapi/v1/openapi.json (schema WarningStatusFeature).
-#     wlevel = ernst: 1=yellow, 2=orange, 3=red (geen 'green'; een gemeinde zonder waarschuwing is groen).
-#     gemeinden = array van 5-cijferige Statistik-Austria GKZ-codes, bv. ["10101","60101"] (geverifieerd:
-#       getWarningsForCoords geeft gemeindenr Wien=90101, Graz=60101, Innsbruck=70101). Geometrie is
-#       EPSG:31287, maar irrelevant — we koppelen op code, niet op geometrie.
-#   Blokkade: austria_gemeinden.geojson draagt die codes NIET. Alle 2114 features hebben zone_id="AT-"
-#     (source_key 'ID' is nooit ingevuld door de normalisatie) en zone=null. Overlap API<->bestand = 0/2114;
-#     een join is onmogelijk. status_at() aansluiten zou AT's legenda op 'live kleuren' zetten terwijl de
-#     kaart alles groen toont -> valse 'alles rustig' (ADR-032: UNAVAILABLE != SAFE). Daarom: niets gebouwd.
-#   Vereiste vóór AT-kleuren: her-fetch de AT-geometrie zodat zone_id = "AT-"+GKZ vult (fetch_boundaries.py,
-#     ADR-031). Zodra dat klopt is status_at() analoog aan status_de() triviaal: per feature in getWarnstatus,
-#     kleur = {1:'yellow',2:'orange',3:'red'}[wlevel], voor elke code in properties['gemeinden'] key
-#     "AT-"+code, meest-ernstige-wint.
+# AT — aangesloten 2026-07-24 ná geometrie-herstel. De blokkade was ONZE geometrie, niet de bron:
+#   austria_gemeinden.geojson kwam uit de verkeerde WFS-laag (Mittelpunkte/punten, lege attributen).
+#   Sinds fetch_boundaries.py expliciet de GRENZEN-laag kiest en source_key=g_id gebruikt, vult zone_id
+#   met AT-<GKZ> en matcht het 1-op-1 met de `gemeinden`-codes uit getWarnstatus. Zie status_at().
 
 
 def main(countries):

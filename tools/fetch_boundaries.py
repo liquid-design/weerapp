@@ -86,8 +86,9 @@ def normalize(features, src, country):
         geom = f["geometry"]
         coords = _project(geom["coordinates"], tf) if tf else _round(geom["coordinates"])
         # Weergavenaam: NOOIT de ID-sleutel eerst (anders toont DE de WARNCELLID i.p.v. de naam).
+        # g_name = Statistik Austria (Gemeindename); generieke attribuutnaam, geen land-if.
         name = (p.get("NAME") or p.get("naam") or p.get("name") or p.get("nom")
-                or p.get("domain_name") or p.get(key))
+                or p.get("domain_name") or p.get("g_name") or p.get(key))
         out.append({"type": "Feature", "properties": {
             "zone_id": f"{country}-{p.get(key,'')}",
             "country": country, "authority": src["authority"],
@@ -103,15 +104,24 @@ def normalize(features, src, country):
 # ---- loader-adapters: één per bron-type, hergebruikt over landen ----
 
 def _discover_layer(base_url, prefix):
-    """Zoek de nieuwste laag die met `prefix` begint via GetCapabilities (AT: datum-laagnamen).
-    Niet hardcoderen; kies de laatst-gedateerde laag."""
+    """Kies EXPLICIET de nieuwste GRENZEN-laag (polygonen), niet de Mittelpunkte (centroïden/punten).
+
+    Statistik Austria publiceert per jaargang twee lagen onder dezelfde prefix:
+      `<prefix><YYYYMMDD>`      = Gemeinden Grenzen      -> polygonen  (wat we willen)
+      `<prefix>MP_<YYYYMMDD>`   = Gemeinden Mittelpunkte -> punten     (fout: leeg zone_id + Points)
+    Alfabetisch sorteren koos ten onrechte de MP-laag ('M' > cijfer). We selecteren daarom alleen
+    namen waar direct ná de prefix EXACT een 8-cijferige datum staat (dus geen `MP_`-infix), en
+    nemen de nieuwste datum."""
     import re
     cap = base_url.split("?")[0] + "?service=WFS&version=2.0.0&request=GetCapabilities"
     r = requests.get(cap, headers=UA, timeout=90); r.raise_for_status()
     names = re.findall(r"<(?:wfs:)?Name>([^<]*" + re.escape(prefix) + r"[^<]*)</(?:wfs:)?Name>", r.text)
-    if not names:
-        raise RuntimeError(f"geen laag met prefix '{prefix}' in capabilities")
-    return sorted(names)[-1]  # nieuwste (datum sorteert lexicografisch)
+    dated = [(m.group(1), n) for n in names
+             for m in [re.search(re.escape(prefix) + r"(\d{8})$", n)] if m]
+    if not dated:
+        raise RuntimeError(f"geen Grenzen-laag ('{prefix}'+datum, geen MP_) in capabilities; "
+                           f"wel gevonden: {sorted(names)}")
+    return max(dated)[1]  # nieuwste datum
 
 
 def load_wfs_geojson(src):
@@ -121,12 +131,11 @@ def load_wfs_geojson(src):
     if not url.lower().startswith("http"):
         url = "https://" + url
     # datum-placeholder? -> laagnaam dynamisch ontdekken (bv. STATISTIK_AUSTRIA_GEM_YYYYMMDD)
-    if "YYYYMMDD" in url or "_GEM_20260101" in url:
+    if "YYYYMMDD" in url:
         import re
         base = url.split("?")[0]
         layer = _discover_layer(base, "STATISTIK_AUSTRIA_GEM_")
         url = re.sub(r"typeName=[^&]+", "typeName=" + layer, url)
-        url = url.replace("YYYYMMDD", "").replace("_GEM_20260101", "_GEM_" + layer.split("_")[-1])
     r = requests.get(url, headers=UA, timeout=120); r.raise_for_status()
     try:
         return r.json().get("features", [])
